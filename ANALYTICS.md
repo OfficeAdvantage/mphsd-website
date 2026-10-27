@@ -310,7 +310,7 @@ Cloud console or the help pages linked at the end.
 
 | Item | Value |
 |---|---|
-| Cloud project ID | _(step A.2)_ |
+| Cloud project ID | `hdo-analytics-dashboard` (project number 2298743570) — confirmed 2026-10-27; BigQuery + BigQuery Storage APIs were already enabled; Search Console export account granted BigQuery Job User + Data Editor 2026-10-27. **Billing still not linked.** |
 | GA4 numeric property ID / dataset | `analytics_` _(step B.9)_ |
 | GA4 export linked on | _(date — history starts here)_ |
 | Search Console export started on | _(date — history starts here)_ |
