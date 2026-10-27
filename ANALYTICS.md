@@ -9,6 +9,14 @@ a person with the company Google account).
 > `googlef47aeb1d901bc7dc.html` file, so `GSC_VERIFICATION` stays `""`), and the Google Business
 > Profile is verified and wired into the site. Still to do: **step 4 below** (connect the profile
 > to GA4) and the Looker Studio dashboard.
+>
+> **Update (2026-10-27):** the dashboard now exists as a Claude dashboard,
+> **Mitchell Plumbing & Heating Analytics** (https://claude.ai/artifact/SyHwT4jrRPevauKBadwd8D),
+> which replaces the Looker Studio build below. It runs on sample files until the BigQuery
+> exports in **"Automating the Claude dashboard with BigQuery"** (near the end of this file)
+> are set up — do that first, since the exports don't backfill. There is also the HDO
+> multi-client dashboard (`analytics-dashboard/` beside `site/`), which shows live numbers
+> today via Google sign-in.
 
 ---
 
@@ -196,6 +204,124 @@ site's data instantly.
 5. **Top pages + traffic sources** (GA4) — which services and towns pull visitors
 
 Ignore raw pageviews and "sessions" as goals — they're inputs, not results.
+
+## Automating the Claude dashboard with BigQuery (~30 min once, then hands-off)
+
+There is now a Claude dashboard for this site, **Mitchell Plumbing & Heating Analytics**
+(https://claude.ai/artifact/SyHwT4jrRPevauKBadwd8D). It currently runs on sample CSV files.
+The hands-off way to feed it is to let Google copy the raw data into **BigQuery** every day
+(a built-in, free, no-code export from both GA4 and Search Console), connect BigQuery to
+Claude once, and then have Claude rewrite the dashboard's sources as live queries. After
+that the dashboard refreshes itself every time it is opened, and nobody exports anything.
+
+> ⏱ **Neither export backfills.** GA4 and Search Console only start copying data from the
+> day the link is made. Every week this waits is a week of history the dashboard will
+> never have. Do steps A–C as soon as possible, even if step D waits.
+
+Everything below has to be done **signed in to the company Google account** that owns the
+GA4 property `G-4LYW71CZQR` and the Search Console property `sc-domain:mphsd.com` (the same
+account that set up the HDO analytics dashboard's Cloud project). Google renames menu items
+now and then; if a label below isn't there verbatim, use the search box at the top of the
+Cloud console or the help pages linked at the end.
+
+### A. Google Cloud project (~10 min)
+
+1. Open https://console.cloud.google.com. In the project picker (top bar) choose the project
+   that was created for the HDO analytics dashboard (named **HDO Analytics Dashboard**). If it
+   doesn't exist, **New project** → name `MPHSD Analytics` → Create, then select it.
+2. **Note the Project ID** (Dashboard → Project info, or the project picker). It looks like
+   `hdo-analytics-dashboard-123456`. The *ID*, not the *number* — Search Console asks for the ID.
+3. Menu ☰ → **APIs & Services → Library**. Search for and **Enable** each of:
+   - **BigQuery API**
+   - **BigQuery Storage API**
+4. Menu ☰ → **Billing** → **Link a billing account** (create one with a company card if none
+   exists). Why: Search Console's export refuses to write to a project without billing, and
+   without billing BigQuery's free "sandbox" deletes every table after 60 days. **Expected
+   charge: $0.** BigQuery's always-free tier is 10 GB of storage and 1 TB of queries per month;
+   a site with a few dozen visits a day uses well under 1% of that. To be safe, Billing →
+   **Budgets & alerts** → Create budget → $5/month → email alert.
+5. Menu ☰ → **IAM & Admin → IAM** → **Grant access**:
+   - New principal: `search-console-data-export@system.gserviceaccount.com`
+   - Roles: **BigQuery Job User** and **BigQuery Data Editor** (add both, then Save).
+   This is the robot account Search Console uses to write its tables. GA4 adds its own
+   (`firebase-measurement@system.gserviceaccount.com`) automatically when you link in step B;
+   if GA4 later complains about permissions, give that account **BigQuery User** here.
+
+### B. GA4 → BigQuery daily export (~5 min)
+
+1. Open https://analytics.google.com, property **Mitchell Plumbing & Heating** (`G-4LYW71CZQR`).
+2. **Admin** (gear, bottom left) → under *Product links* → **BigQuery links** → **Link**.
+   You need Editor or above on the GA4 property and Owner on the Cloud project — the company
+   account has both if step A was done with it.
+3. **Choose a BigQuery project** → pick the project from step A → Confirm.
+4. **Data location:** `United States (us)` (multi-region). Keep this; it can't be changed later
+   and Search Console will go in the same place.
+5. Next → *Configure data streams and events*: leave all streams included, exclude nothing.
+6. **Include advertising identifiers for mobile app streams:** leave off (there is no app).
+7. **Frequency:** tick **Daily** only. (Streaming is not needed and can cost money.)
+8. Next → **Submit**. The link shows as active immediately; the first table arrives within
+   24 hours as `analytics_<property number>.events_YYYYMMDD`.
+9. While you are here: **Admin → Property settings → Property details** → copy the numeric
+   **Property ID** (not the `G-` measurement ID) into the note at the end of this section.
+   The BigQuery dataset is named after it.
+
+### C. Search Console → BigQuery bulk export (~5 min)
+
+1. Open https://search.google.com/search-console, property **mphsd.com** (the domain property).
+   You must be an *Owner* of the property, not just a user.
+2. Left menu → **Settings** → **Bulk data export** → **Continue** (or *Start*).
+3. **Cloud project ID:** paste the Project ID from step A.2.
+4. **Dataset name:** leave the default `searchconsole`.
+5. **Dataset location:** `US` — the same as GA4 in step B.4.
+6. Continue → Search Console checks the permissions from step A.5 → **Set up export**.
+   If it reports a permissions error, go back to IAM and confirm both roles are on the
+   `search-console-data-export@…` principal, then retry.
+7. First tables appear within 48 hours: `searchconsole.searchdata_site_impression`,
+   `searchconsole.searchdata_url_impression` and an `ExportLog` table. Daily after that.
+   Settings → Bulk data export shows the export's status and last successful day.
+
+### D. Connect BigQuery to Claude and switch the dashboard (~5 min, then Claude's job)
+
+1. In Claude (claude.ai) → **Settings → Connectors** → browse the directory → add
+   **Google Cloud BigQuery** → **Connect** → sign in with the same company Google account →
+   allow read access. (If the directory shows two BigQuery connectors, the Google Cloud one
+   is the right one.)
+2. Open the Claude session that holds the dashboard, or any new session in this project,
+   make sure the BigQuery connector is enabled for it, and say:
+   *"BigQuery is connected. Switch the Mitchell Plumbing & Heating Analytics dashboard from
+   the sample files to live queries on the GA4 and Search Console exports."*
+3. Claude then writes one SQL query per dashboard source (daily sessions and lead events,
+   sessions by source/medium, views by page, Search Console by day, top queries, top pages,
+   demand by town), keeps the same column names so the page does not change, removes the
+   "Sample" labels, and checks each query. From then on the numbers refresh on every open.
+4. In the dashboard itself, **Settings → Queries run as**: choose **You** if people at
+   Mitchell Plumbing should see the numbers without having their own BigQuery access, or
+   leave **Each viewer** if only HDO staff with the connector will open it.
+
+### What stays manual, and the cheap fixes
+
+| Card | Why it can't come from BigQuery | What to do |
+|---|---|---|
+| Google Business Profile (calls, directions, website clicks, reviews) | No BigQuery export exists for the profile | Do **step 4 above** (link the profile to GA4) so calls/directions at least appear in GA4's own reports; then either a 5-minute monthly CSV from Business Profile → Performance, or ask Claude to add a Business Profile API connector later |
+| AI visibility (does Claude/Gemini/Perplexity recommend the business?) | No API reports what assistants answer | Run the AI Visibility tab in the HDO dashboard quarterly and paste the results to Claude, or let Claude run a monthly scheduled task that asks the five questions with web search (Claude column only) |
+| PageSpeed scores | The key-less PageSpeed API has a daily quota of 0 | Re-run at https://pagespeed.web.dev after each deploy and tell Claude the scores, or create a free PageSpeed API key in the Cloud project (APIs & Services → Credentials) and Claude can re-run it on a schedule |
+
+### Record here when done
+
+| Item | Value |
+|---|---|
+| Cloud project ID | _(step A.2)_ |
+| GA4 numeric property ID / dataset | `analytics_` _(step B.9)_ |
+| GA4 export linked on | _(date — history starts here)_ |
+| Search Console export started on | _(date — history starts here)_ |
+| BigQuery connected to Claude on | _(date)_ |
+| Dashboard switched to live queries on | _(date)_ |
+
+Google's own guides, in case a screen looks different: [GA4 — Set up BigQuery Export](https://support.google.com/analytics/answer/9823238),
+[Search Console — Start a new bulk data export](https://support.google.com/webmasters/answer/12917675),
+[Search Console — Manage and monitor bulk data exports](https://support.google.com/webmasters/answer/12919198).
+
+---
 
 ## Later, if the business wants more
 
