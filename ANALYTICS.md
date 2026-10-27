@@ -310,9 +310,9 @@ Cloud console or the help pages linked at the end.
 
 | Item | Value |
 |---|---|
-| Cloud project ID | `hdo-analytics-dashboard` (project number 2298743570) — confirmed 2026-10-27; BigQuery + BigQuery Storage APIs were already enabled; Search Console export account granted BigQuery Job User + Data Editor 2026-10-27. **Billing still not linked.** |
-| GA4 numeric property ID / dataset | `analytics_` _(step B.9)_ |
-| GA4 export linked on | _(date — history starts here)_ |
+| Cloud project ID | `hdo-analytics-dashboard` (project number 2298743570) — confirmed 2026-10-27; BigQuery + BigQuery Storage APIs were already enabled; Search Console export account granted BigQuery Job User + Data Editor 2026-10-27. Billing linked 2026-10-27 to a new billing account (Google free trial, $300 credit / 90 days — **upgrade it to a full account before the trial ends or the exports stop**); budget alert "MPHSD analytics" $5/month created. |
+| GA4 numeric property ID / dataset | 546671883 → dataset `analytics_546671883` |
+| GA4 export linked on | 2026-10-27 (Daily, US) — history starts here |
 | Search Console export started on | _(date — history starts here)_ |
 | BigQuery connected to Claude on | _(date)_ |
 | Dashboard switched to live queries on | _(date)_ |
