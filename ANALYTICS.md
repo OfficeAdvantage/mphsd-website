@@ -314,8 +314,8 @@ Cloud console or the help pages linked at the end.
 | GA4 numeric property ID / dataset | 546671883 → dataset `analytics_546671883` |
 | GA4 export linked on | 2026-10-27 (Daily, US) — history starts here |
 | Search Console export started on | 2026-10-27 (project hdo-analytics-dashboard, dataset `searchconsole`, US) — first tables within 48 h; history starts here |
-| BigQuery connected to Claude on | _(date)_ |
-| Dashboard switched to live queries on | _(date)_ |
+| BigQuery connected to Claude on | 2026-10-27 (Google Cloud BigQuery connector, same Gmail account) |
+| Dashboard switched to live queries on | 2026-11-01 — GA4 daily/sources/pages and Search Console daily/queries/pages are live queries (readable copy: `dashboard-bigquery-queries.sql` in the parent folder); Business Profile and AI visibility stay sample files |
 
 Google's own guides, in case a screen looks different: [GA4 — Set up BigQuery Export](https://support.google.com/analytics/answer/9823238),
 [Search Console — Start a new bulk data export](https://support.google.com/webmasters/answer/12917675),
