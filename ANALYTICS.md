@@ -7,8 +7,8 @@ a person with the company Google account).
 
 > **Status (2026-09-01):** GA4 (`G-4LYW71CZQR`) is live, Search Console is verified (via the
 > `googlef47aeb1d901bc7dc.html` file, so `GSC_VERIFICATION` stays `""`), and the Google Business
-> Profile is verified and wired into the site. Still to do: **step 4 below** (connect the profile
-> to GA4) and the Looker Studio dashboard.
+> Profile is verified and wired into the site. Step 4 (connect the profile to GA4) was done on
+> 2026-09-01. The Looker Studio dashboard was never built; see the update below.
 >
 > **Update (2026-10-27):** the dashboard now exists as a Claude dashboard,
 > **Mitchell Plumbing & Heating Analytics** (https://claude.ai/artifact/SyHwT4jrRPevauKBadwd8D),
@@ -91,7 +91,11 @@ Wired into the site as of 2026-09-01:
 The profile currently has **zero reviews** — see `marketing/google-business-profile-setup.md`
 for the remaining dashboard work (categories, photos, services, review requests).
 
-### 4. Connect the Business Profile to GA4 (~2 min)
+### 4. Connect the Business Profile to GA4 (~2 min) — ✅ done 2026-09-01
+Linked on 2026-09-01 (GA4 Admin → Product links → Google Business Profile links lists "Mitchell Plg. &
+Htg."). The Business Profile report collection is live under Reports; Sep 2026 showed 23 calls,
+70 direction requests and 13 website clicks from the profile.
+
 Since June 2026 GA4 pulls Business Profile metrics natively — no tags, no separate login.
 **GA4 → Admin → Product links → Google Business Profile links → Link.**
 
@@ -197,8 +201,9 @@ site's data instantly.
 
 1. **Phone calls + form leads** (GA4 key events) — the only numbers that pay the bills
 2. **Calls / directions from Google Business Profile** — the Maps side of the funnel.
-   Once step 4 is done these sit in GA4's Business Profile reports alongside the website
-   numbers, instead of needing a separate trip to the Business Profile dashboard.
+   Since step 4 was done (2026-09-01) these sit in GA4's Business Profile reports alongside the
+   website numbers. The Claude dashboard's Business Profile card is refreshed by hand each month
+   from the profile's own Performance panel, which also has profile views and searches.
 3. **Search impressions, clicks, and average position** (Search Console) — is SEO working
 4. **Top queries** (Search Console) — what people actually search; feeds blog topics
 5. **Top pages + traffic sources** (GA4) — which services and towns pull visitors
@@ -302,7 +307,7 @@ Cloud console or the help pages linked at the end.
 
 | Card | Why it can't come from BigQuery | What to do |
 |---|---|---|
-| Google Business Profile (calls, directions, website clicks, reviews) | No BigQuery export exists for the profile | Do **step 4 above** (link the profile to GA4) so calls/directions at least appear in GA4's own reports; then either a 5-minute monthly CSV from Business Profile → Performance, or ask Claude to add a Business Profile API connector later |
+| Google Business Profile (calls, directions, website clicks, reviews) | No BigQuery export exists for the profile | Step 4 is done, so calls/directions appear in GA4's own reports. The dashboard card holds real figures read by hand each month (since 2026-11-02) from the profile's Performance panel: open the profile from business.google.com → Performance → pick the month → Overview (views, searches), Calls, Directions, Website clicks tabs; ask Claude to update the file. A Business Profile API connector could automate it later |
 | AI visibility (does Claude/Gemini/Perplexity recommend the business?) | No API reports what assistants answer | Run the AI Visibility tab in the HDO dashboard quarterly and paste the results to Claude, or let Claude run a monthly scheduled task that asks the five questions with web search (Claude column only) |
 | PageSpeed scores | The key-less PageSpeed API has a daily quota of 0 | Re-run at https://pagespeed.web.dev after each deploy and tell Claude the scores, or create a free PageSpeed API key in the Cloud project (APIs & Services → Credentials) and Claude can re-run it on a schedule |
 
@@ -315,7 +320,7 @@ Cloud console or the help pages linked at the end.
 | GA4 export linked on | 2026-10-27 (Daily, US) — history starts here |
 | Search Console export started on | 2026-10-27 (project hdo-analytics-dashboard, dataset `searchconsole`, US) — first tables within 48 h; history starts here |
 | BigQuery connected to Claude on | 2026-10-27 (Google Cloud BigQuery connector, same Gmail account) |
-| Dashboard switched to live queries on | 2026-11-01 — GA4 daily/sources/pages and Search Console daily/queries/pages are live queries (readable copy: `dashboard-bigquery-queries.sql` in the parent folder); Business Profile and AI visibility stay sample files |
+| Dashboard switched to live queries on | 2026-11-01 — GA4 daily/sources/pages and Search Console daily/queries/pages are live queries (readable copy: `dashboard-bigquery-queries.sql` in the parent folder); Business Profile card real from 2026-11-02 (manual monthly file); AI visibility stays a sample file |
 
 Google's own guides, in case a screen looks different: [GA4 — Set up BigQuery Export](https://support.google.com/analytics/answer/9823238),
 [Search Console — Start a new bulk data export](https://support.google.com/webmasters/answer/12917675),
