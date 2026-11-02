@@ -156,8 +156,8 @@ site, so when the next rebuild ran (two docs merges on 2026-11-01) GitHub droppe
 from the site and **mphsd.com returned 404 for about seven hours**; `officeadvantage.github.io/mphsd-website`
 kept serving. Recovery: removed the personal-account verification, saved `mphsd.com` as the
 custom domain on `OfficeAdvantage/mphsd-website` → Settings → Pages (as the org owner), then
-added this TXT record so the organization can verify the domain and get the takeover
-protection back. Verify at GitHub → OfficeAdvantage → Settings → Pages → Verified domains.
+added this TXT record and verified the domain under the organization the same evening, which
+restores the takeover protection.
 
 Lesson: after any repository transfer, check Settings → Pages → Custom domain the same day,
 before merging anything.
