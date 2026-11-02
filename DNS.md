@@ -41,7 +41,7 @@ breaks the site.
 | `@` | A | `185.199.109.153` | GitHub Pages apex |
 | `@` | A | `185.199.110.153` | GitHub Pages apex |
 | `@` | A | `185.199.111.153` | GitHub Pages apex |
-| `www` | CNAME | `crysvarther.github.io` | `www` → the Pages site |
+| `www` | CNAME | `crysvarther.github.io` | `www` → the Pages site. Still works after the repo moved to the OfficeAdvantage org (GitHub routes by hostname), but the canonical target is now `officeadvantage.github.io`; change it at a quiet moment |
 
 All four A records are required — GitHub publishes four and expects all four present.
 Removing any of them costs you redundancy; removing all of them takes the site down.
@@ -81,6 +81,7 @@ Two notes on the mail records:
 | Name | Type | Value | Purpose |
 |---|---|---|---|
 | `@` | TXT | `google-site-verification=XT0gl9t4IW82Yt6-FoRnn4JyonACiiEkwBZbVyhbK5Q` | Google Search Console — **domain** property (`sc-domain:mphsd.com`) |
+| `_github-pages-challenge-OfficeAdvantage` | TXT | `80320b90551df2667f62893109fa27` | GitHub Pages — proves the **OfficeAdvantage** org owns the domain, so only its repos can publish a Pages site on it |
 
 **This record must stay.** Google re-checks it periodically. Deleting it during a future
 cleanup silently un-verifies the domain property and you lose that Search Console data
@@ -140,6 +141,28 @@ are the GoDaddy default of one hour.
 
 Newest first. Record what changed **and why** — the "what" is recoverable from history, the
 "why" is not.
+
+### 2026-11-01 — Added GitHub Pages domain verification for the OfficeAdvantage org
+
+**Added:** `_github-pages-challenge-OfficeAdvantage TXT 80320b90551df2667f62893109fa27`
+**Changed:** nothing. **Removed:** nothing in DNS. (Removed on GitHub, not in DNS: the
+`mphsd.com` verified-domain entry on the crysvarther *personal* account, whose old
+`_github-pages-challenge-crysvarther` TXT record can be deleted from the zone whenever
+convenient — it no longer protects anything.)
+
+Why: the site repo moved from the crysvarther account to the OfficeAdvantage organization in
+October. A domain verified under one GitHub account cannot be used by another account's Pages
+site, so when the next rebuild ran (two docs merges on 2026-11-01) GitHub dropped `mphsd.com`
+from the site and **mphsd.com returned 404 for about seven hours**; `officeadvantage.github.io/mphsd-website`
+kept serving. Recovery: removed the personal-account verification, saved `mphsd.com` as the
+custom domain on `OfficeAdvantage/mphsd-website` → Settings → Pages (as the org owner), then
+added this TXT record so the organization can verify the domain and get the takeover
+protection back. Verify at GitHub → OfficeAdvantage → Settings → Pages → Verified domains.
+
+Lesson: after any repository transfer, check Settings → Pages → Custom domain the same day,
+before merging anything.
+
+SPF, MX and the Google verification TXT were confirmed unchanged after the edit.
 
 ### 2026-09-10 — Added Google Search Console domain-property verification
 
