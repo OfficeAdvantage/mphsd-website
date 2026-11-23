@@ -1,0 +1,95 @@
+name: Uptime check
+
+# Fetches the live site every 30 minutes. If the home page is not a 200 with the real
+# content, the www redirect breaks, or the Pages custom domain disappears, the run fails
+# and an issue labelled "uptime" is opened (and commented on while the outage lasts).
+# When the site is back, the open issue is closed automatically.
+#
+# Why: on 2026-11-01 the site served GitHub's 404 page for about seven hours after the
+# repository transfer dropped the custom domain, and on 2026-11-10..12 Analytics recorded
+# nothing for three days. Nobody noticed either in time. This is the alarm.
+#
+# GitHub pauses scheduled workflows in repositories with no commits for 60 days; a commit
+# of any kind, or "Enable workflow" under Actions, turns it back on.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pages: read
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Home page answers with the real site
+        run: |
+          code=$(curl -sS -o body.html -w '%{http_code}' --max-time 30 https://mphsd.com/ || echo 000)
+          echo "https://mphsd.com/ -> HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::mphsd.com returned HTTP $code"
+            exit 1
+          fi
+          if ! grep -q "Mitchell Plumbing" body.html; then
+            echo "::error::mphsd.com answered 200 but the page does not contain the site's name"
+            exit 1
+          fi
+
+      - name: www redirects to the site
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -L --max-time 30 https://www.mphsd.com/ || echo 000)
+          echo "https://www.mphsd.com/ (followed) -> HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::www.mphsd.com ended with HTTP $code"
+            exit 1
+          fi
+
+      - name: Custom domain is still set on GitHub Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cname=$(gh api "repos/${{ github.repository }}/pages" --jq '.cname' 2>/dev/null || echo "unreadable")
+          echo "Pages custom domain: $cname"
+          if [ "$cname" != "mphsd.com" ]; then
+            echo "::error::GitHub Pages custom domain is '$cname', expected mphsd.com"
+            exit 1
+          fi
+
+      - name: Open or update the outage issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create uptime --description "Automatic site availability alerts" --color B60205 --force >/dev/null 2>&1 || true
+          existing=$(gh issue list --repo "${{ github.repository }}" --label uptime --state open --json number --jq '.[0].number')
+          stamp=$(date -u '+%Y-%m-%d %H:%M UTC')
+          if [ -z "$existing" ]; then
+            gh issue create --repo "${{ github.repository }}" \
+              --title "mphsd.com is down (uptime check failed $stamp)" \
+              --label uptime \
+              --body "The scheduled uptime check failed at $stamp. See the run log for which step failed: $RUN_URL
+
+Checks: home page returns 200 with the site's content, www redirects to it, and the GitHub Pages custom domain is still mphsd.com.
+
+First things to look at: Settings → Pages (is the custom domain still set?), then https://officeadvantage.github.io/mphsd-website/ (does the site serve there?), then DNS at GoDaddy (see DNS.md). This issue closes itself when a later check passes."
+          else
+            gh issue comment "$existing" --repo "${{ github.repository }}" --body "Still failing at $stamp. Run: $RUN_URL"
+          fi
+
+      - name: Close the outage issue when the site is back
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for n in $(gh issue list --repo "${{ github.repository }}" --label uptime --state open --json number --jq '.[].number'); do
+            gh issue close "$n" --repo "${{ github.repository }}" --comment "The uptime check passed again at $(date -u '+%Y-%m-%d %H:%M UTC'); closing automatically."
+          done
