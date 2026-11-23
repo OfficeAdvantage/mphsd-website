@@ -46,7 +46,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          gh label create uptime-test --description "Manual tests of the uptime alert" --color FBCA04 --force >/dev/null 2>&1 || true
+          gh label create uptime-test --repo "${{ github.repository }}" --description "Manual tests of the uptime alert" --color FBCA04 --force >/dev/null 2>&1 || true
           stamp=$(date -u '+%Y-%m-%d %H:%M UTC')
           body="This is a TEST of the uptime alert, started by hand at $stamp. The site is not down."
           body="$body"$'\n\n'"If this issue reached you by email or on the GitHub app, alerts work. It closes itself a moment after opening. Run: $RUN_URL"
@@ -99,7 +99,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          gh label create uptime --description "Automatic site availability alerts" --color B60205 --force >/dev/null 2>&1 || true
+          gh label create uptime --repo "${{ github.repository }}" --description "Automatic site availability alerts" --color B60205 --force >/dev/null 2>&1 || true
           existing=$(gh issue list --repo "${{ github.repository }}" --label uptime --state open --json number --jq '.[0].number')
           stamp=$(date -u '+%Y-%m-%d %H:%M UTC')
           if [ -z "$existing" ]; then
