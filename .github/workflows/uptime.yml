@@ -8,6 +8,7 @@ name: Uptime check
 # Why: on 2026-11-01 the site served GitHub's 404 page for about seven hours after the
 # repository transfer dropped the custom domain, and on 2026-11-10..12 Analytics recorded
 # nothing for three days. Nobody noticed either in time. This is the alarm.
+# The issue is assigned to Chris, so GitHub emails him (and pings the mobile app) the moment it opens.
 #
 # GitHub pauses scheduled workflows in repositories with no commits for 60 days; a commit
 # of any kind, or "Enable workflow" under Actions, turns it back on.
@@ -79,6 +80,7 @@ jobs:
             gh issue create --repo "${{ github.repository }}" \
               --title "mphsd.com is down (uptime check failed $stamp)" \
               --label uptime \
+              --assignee chrisf-officeadv,crysvarther \
               --body "$body"
           else
             gh issue comment "$existing" --repo "${{ github.repository }}" --body "Still failing at $stamp. Run: $RUN_URL"
