@@ -10,6 +10,10 @@ name: Uptime check
 # nothing for three days. Nobody noticed either in time. This is the alarm.
 # The issue is assigned to Chris, so GitHub emails him (and pings the mobile app) the moment it opens.
 #
+# Test mode: Actions > Uptime check > Run workflow > tick "Test the alert" > Run. That opens a
+# clearly marked test issue assigned to Chris and closes it straight away, so the email can be
+# confirmed without an outage. The real checks still run in the same run.
+#
 # GitHub pauses scheduled workflows in repositories with no commits for 60 days; a commit
 # of any kind, or "Enable workflow" under Actions, turns it back on.
 
@@ -17,6 +21,11 @@ on:
   schedule:
     - cron: "*/30 * * * *"
   workflow_dispatch:
+    inputs:
+      test:
+        description: "Test the alert: open a test issue assigned to Chris, then close it"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -31,6 +40,26 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
+      - name: Test the alert (manual test mode only)
+        if: github.event_name == 'workflow_dispatch' && inputs.test
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create uptime-test --description "Manual tests of the uptime alert" --color FBCA04 --force >/dev/null 2>&1 || true
+          stamp=$(date -u '+%Y-%m-%d %H:%M UTC')
+          body="This is a TEST of the uptime alert, started by hand at $stamp. The site is not down."
+          body="$body"$'\n\n'"If this issue reached you by email or on the GitHub app, alerts work. It closes itself a moment after opening. Run: $RUN_URL"
+          url=$(gh issue create --repo "${{ github.repository }}" \
+            --title "TEST: uptime alert check ($stamp)" \
+            --label uptime-test \
+            --assignee chrisf-officeadv,crysvarther \
+            --body "$body")
+          echo "Opened $url"
+          n=${url##*/}
+          gh issue close "$n" --repo "${{ github.repository }}" --comment "Test complete. No outage; nothing to do."
+          echo "Closed #$n"
+
       - name: Home page answers with the real site
         run: |
           code=$(curl -sS -o body.html -w '%{http_code}' --max-time 30 https://mphsd.com/ || echo 000)
