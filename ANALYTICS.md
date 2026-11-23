@@ -333,7 +333,8 @@ Google's own guides, in case a screen looks different: [GA4 — Set up BigQuery 
 - **Uptime monitoring** — ✅ done 2026-11-23: a scheduled GitHub Action (`.github/workflows/uptime.yml`)
   fetches mphsd.com every 30 minutes, checks the www redirect and the Pages custom domain, and
   opens an issue labelled `uptime` when anything fails (it closes the issue itself when the site is
-  back). Watch the repo to get the email. If the Actions tab shows the workflow disabled (GitHub
+  back). The issue is assigned to Chris (both GitHub accounts), so GitHub emails him when it opens
+  and on every follow-up comment while the site stays down. If the Actions tab shows the workflow disabled (GitHub
   pauses schedules after 60 days without commits), click Enable workflow.
 - **Call tracking** (CallRail, ~$45+/mo) — swap-in tracking phone number that attributes
   calls to ads vs. website vs. truck wrap. Only worth it once there's ad spend.
