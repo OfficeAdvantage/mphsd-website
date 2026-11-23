@@ -73,14 +73,13 @@ jobs:
           existing=$(gh issue list --repo "${{ github.repository }}" --label uptime --state open --json number --jq '.[0].number')
           stamp=$(date -u '+%Y-%m-%d %H:%M UTC')
           if [ -z "$existing" ]; then
+            body="The scheduled uptime check failed at $stamp. See the run log for which step failed: $RUN_URL"
+            body="$body"$'\n\n'"Checks: home page returns 200 with the site's content, www redirects to it, and the GitHub Pages custom domain is still mphsd.com."
+            body="$body"$'\n\n'"First things to look at: Settings > Pages (is the custom domain still set?), then https://officeadvantage.github.io/mphsd-website/ (does the site serve there?), then DNS at GoDaddy (see DNS.md). This issue closes itself when a later check passes."
             gh issue create --repo "${{ github.repository }}" \
               --title "mphsd.com is down (uptime check failed $stamp)" \
               --label uptime \
-              --body "The scheduled uptime check failed at $stamp. See the run log for which step failed: $RUN_URL
-
-Checks: home page returns 200 with the site's content, www redirects to it, and the GitHub Pages custom domain is still mphsd.com.
-
-First things to look at: Settings → Pages (is the custom domain still set?), then https://officeadvantage.github.io/mphsd-website/ (does the site serve there?), then DNS at GoDaddy (see DNS.md). This issue closes itself when a later check passes."
+              --body "$body"
           else
             gh issue comment "$existing" --repo "${{ github.repository }}" --body "Still failing at $stamp. Run: $RUN_URL"
           fi
